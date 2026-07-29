@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMS-0057-F Readiness Assessment | Powered by PAS-Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PAS-Connect / FhirPlug brand:  navy + gold
+   Scoring config lives in <script> at the bottom (DOMAIN_WEIGHTS)
+   ============================================================ */
+:root{
+  --navy:#0f0f1a; --navy-2:#16213e; --navy-3:#1a2544;
+  --gold:#e8a317; --gold-light:#f5c842; --gold-soft:rgba(232,163,23,.12);
+  --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
+  --bg:#f6f7fb; --card:#ffffff;
+  --green:#059669; --green-bg:#ecfdf5;
+  --amber:#d97706; --amber-bg:#fffbeb;
+  --red:#dc2626; --red-bg:#fef2f2;
+  --radius:14px; --radius-sm:9px;
+  --shadow:0 1px 3px rgba(16,24,40,.08),0 8px 24px -12px rgba(16,24,40,.18);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px}
+
+/* ---- top bar ---- */
+.topbar{background:var(--navy);color:#fff;padding:14px 0;position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255,.06)}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.2px}
+.brand .dot{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:grid;place-items:center;color:var(--navy);font-weight:800;font-size:14px}
+.brand small{display:block;font-weight:500;font-size:11px;color:#9fb0d0;letter-spacing:.3px}
+.tag{font-size:12px;color:#9fb0d0}
+
+/* ---- progress ---- */
+.progress-wrap{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:55px;z-index:15}
+.progress-wrap .wrap{padding:12px 20px 14px}
+.progress-head{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--muted);margin-bottom:8px}
+.progress-head b{color:var(--ink);font-weight:600}
+.bar{height:7px;background:#eef0f5;border-radius:20px;overflow:hidden}
+.bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:20px;transition:width .35s ease}
+
+/* ---- cards / sections ---- */
+main{padding:28px 0 80px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:30px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold)}
+h1{font-size:28px;line-height:1.2;margin:14px 0 8px;font-weight:800;letter-spacing:-.4px}
+h2.section-title{font-size:22px;margin:6px 0 4px;font-weight:800;letter-spacing:-.3px}
+.section-sub{color:var(--muted);font-size:14.5px;margin:0 0 22px}
+.lead{color:#374151;font-size:15.5px}
+
+.q{padding:20px 0;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0;padding-top:6px}
+.q .qh{font-weight:600;font-size:15.5px;margin-bottom:3px}
+.q .qhint{color:var(--muted);font-size:13px;margin-bottom:12px}
+
+/* options */
+.opts{display:flex;flex-direction:column;gap:9px}
+.opts.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:9px}
+.opt{display:flex;align-items:center;gap:11px;border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;transition:border-color .12s,background .12s;font-size:14.5px;user-select:none}
+.opt:hover{border-color:#c9cdd6;background:#fafbfc}
+.opt input{accent-color:var(--gold);width:17px;height:17px;flex:none}
+.opt.checked{border-color:var(--gold);background:var(--gold-soft)}
+
+/* matrix */
+.matrix{width:100%;border-collapse:collapse;font-size:14px}
+.matrix th{text-align:center;font-size:12px;color:var(--muted);font-weight:600;padding:6px 4px}
+.matrix th:first-child{text-align:left}
+.matrix td{border-top:1px solid var(--line);padding:11px 4px;vertical-align:middle}
+.matrix td:first-child{font-weight:500}
+.matrix td.c{text-align:center;width:100px}
+.matrix input{accent-color:var(--gold);width:17px;height:17px;cursor:pointer}
+
+/* number / text inputs */
+.num-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:4px}
+.field label{font-size:13.5px;font-weight:500;color:#374151}
+input[type=number],input[type=text],input[type=email],select{font-family:inherit;font-size:14.5px;padding:11px 13px;border:1.5px solid var(--line);border-radius:var(--radius-sm);background:#fff;color:var(--ink);width:100%;max-width:340px}
+input:focus,select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-soft)}
+.inline-num{max-width:130px}
+.suffix{color:var(--muted);font-size:14px}
+
+/* nav buttons */
+.actions{display:flex;justify-content:space-between;gap:12px;margin-top:26px}
+.btn{font-family:inherit;font-size:15px;font-weight:600;padding:13px 26px;border-radius:var(--radius-sm);border:1.5px solid transparent;cursor:pointer;transition:.14s;display:inline-flex;align-items:center;gap:8px}
+.btn.primary{background:var(--gold);color:var(--navy)}
+.btn.primary:hover{background:var(--gold-light)}
+.btn.ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:#c9cdd6}
+.btn.big{width:100%;justify-content:center;font-size:16px;padding:15px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* intro extras */
+.pill-list{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 4px}
+.pill-list span{background:#f1f3f8;border:1px solid var(--line);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:500;color:#374151}
+.bands{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:22px 0 4px}
+.band{border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+.band b{display:block;font-size:18px}
+.band small{color:var(--muted);font-size:12.5px}
+
+/* ---- report ---- */
+.report h2{font-size:20px;margin:34px 0 14px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:9px}
+.report h2 .n{width:26px;height:26px;border-radius:7px;background:var(--navy);color:var(--gold);font-size:14px;display:grid;place-items:center;font-weight:800}
+.score-hero{background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#fff;border-radius:var(--radius);padding:30px;display:flex;align-items:center;gap:30px;flex-wrap:wrap}
+.gauge{position:relative;width:150px;height:150px;flex:none}
+.gauge svg{transform:rotate(-90deg)}
+.gauge .val{position:absolute;inset:0;display:grid;place-items:center;flex-direction:column;text-align:center}
+.gauge .val b{font-size:40px;font-weight:800;line-height:1}
+.gauge .val small{color:#9fb0d0;font-size:12px}
+.score-hero .meta{flex:1;min-width:220px}
+.score-hero .meta .band-name{font-size:26px;font-weight:800;margin:0 0 6px}
+.score-hero .meta p{color:#c3cfe6;font-size:14.5px;margin:0}
+
+.domains{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+.dom{display:grid;grid-template-columns:170px 1fr 48px;align-items:center;gap:14px}
+.dom .dn{font-weight:600;font-size:14px}
+.dom .dbar{height:11px;background:#eef0f5;border-radius:20px;overflow:hidden}
+.dom .dbar i{display:block;height:100%;border-radius:20px;transition:width .5s}
+.dom .dv{font-weight:700;text-align:right;font-size:15px}
+
+.list-flag{list-style:none;padding:0;margin:8px 0 0}
+.list-flag li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}
+.list-flag li:first-child{border-top:0}
+.list-flag .x{color:var(--red);font-weight:800;flex:none}
+.list-flag .ok{color:var(--green);font-weight:800;flex:none}
+
+.plan{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.plan .col{border:1px solid var(--line);border-radius:11px;padding:16px}
+.plan .col h4{margin:0 0 4px;font-size:14.5px}
+.plan .col .when{font-size:12px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.plan ul{margin:10px 0 0;padding-left:18px;font-size:13.5px;color:#374151}
+.plan li{margin-bottom:6px}
+
+table.impact{width:100%;border-collapse:collapse;font-size:14.5px}
+table.impact td{padding:12px 4px;border-top:1px solid var(--line)}
+table.impact td:last-child{text-align:right;font-weight:700;color:var(--green)}
+
+.rec{background:var(--amber-bg);border:1px solid #fde68a;border-radius:11px;padding:15px 17px;margin-bottom:11px}
+.rec h4{margin:0 0 5px;font-size:14.5px}
+.rec p{margin:0;font-size:14px;color:#4b5563}
+
+.cap-note{background:var(--green-bg);border:1px solid #a7f3d0;border-radius:11px;padding:14px 16px;font-size:13.5px;color:#065f46;margin-top:16px}
+.muted-note{color:var(--muted);font-size:12.5px;margin-top:26px;border-top:1px solid var(--line);padding-top:16px}
+
+footer{background:var(--navy);color:#8ea3c7;text-align:center;padding:22px;font-size:12.5px}
+.hide{display:none!important}
+
+@media(max-width:640px){
+  .card{padding:22px}
+  h1{font-size:24px}
+  .dom{grid-template-columns:110px 1fr 40px}
+  .plan{grid-template-columns:1fr}
+  .score-hero{gap:20px}
+}
+@media print{
+  .topbar,.progress-wrap,footer,.actions,.no-print{display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none;border:none;padding:0}
+  .score-hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <span class="dot">P</span>
+      <div>PAS-Connect<small>CMS-0057-F Readiness Assessment</small></div>
+    </div>
+    <div class="tag">Powered by FhirPlug &middot; Novatross</div>
+  </div>
+</div>
+
+<div class="progress-wrap hide" id="progressWrap">
+  <div class="wrap">
+    <div class="progress-head"><span id="progLabel">Section 1 of 12</span><b id="progPct">0%</b></div>
+    <div class="bar"><i id="progBar"></i></div>
+  </div>
+</div>
+
+<main><div class="wrap">
+  <div class="card" id="stage"><!-- rendered by JS --></div>
+</div></main>
+
+<footer>
+  CMS-0057-F Readiness Assessment &middot; Powered by PAS-Connect&trade; &middot; &copy; Novatross Technology<br>
+  This assessment collects organizational and operational information only. No patient data is requested or stored.
+</footer>
+
+<script>
+/* ============================================================
+   1. SCORING CONFIG  — tune these freely
+   ============================================================ */
+const DOMAIN_WEIGHTS = {          // must sum to 1.0
+  "CMS APIs":            0.20,
+  "PAS":                 0.18,
+  "CDex":                0.15,
+  "Provider Experience": 0.15,
+  "Decision Automation": 0.17,
+  "Security":            0.15
+};
+const BANDS = [
+  {min:90, name:"Production Ready", color:"#059669", blurb:"Your organization is well positioned to meet CMS-0057-F. Focus on optimization and monitoring."},
+  {min:75, name:"Mostly Ready",     color:"#16a34a", blurb:"Strong foundation with a few targeted gaps to close before the compliance deadlines."},
+  {min:60, name:"Moderate Gaps",    color:"#d97706", blurb:"Core capabilities exist but several domains need meaningful work to reach compliance."},
+  {min:40, name:"Significant Gaps", color:"#ea580c", blurb:"Substantial build-out required across multiple domains to meet the rule."},
+  {min:0,  name:"High Compliance Risk", color:"#dc2626", blurb:"Major gaps across most domains. A structured remediation program is strongly advised."}
+];
+
+/* ============================================================
+   2. QUESTION MODEL
+   type: single | multi | matrix | number | contact
+   Each scored option carries {v: label, p: points 0-100, dom: domain}
+   ============================================================ */
+const SECTIONS = [
+ {id:1, title:"Organizational Readiness", sub:"Section 1 — Executive sponsorship, team, and program timeline.",
+  qs:[
+   {id:"exec", type:"single", q:"Do you have an executive responsible for CMS-0057-F implementation?", dom:"CMS APIs", weight:0,
+     opts:[{v:"Yes",p:100},{v:"In Progress",p:50},{v:"No",p:0}]},
+   {id:"team", type:"multi", q:"Have representatives from these groups been assigned?", hint:"Select all that apply", scoreBy:"count",
+     opts:["Utilization Management","IT","Provider Operations","Compliance","Clinical Review","Interoperability","Vendor Management"]},
+   {id:"timeline", type:"single", q:"Implementation status",
+     opts:[{v:"Completed",p:100},{v:"In Progress",p:70},{v:"Planning",p:40},{v:"Not Started",p:0}]}
+  ]},
+ {id:2, title:"Prior Authorization Workflow", sub:"Section 2 — Submission channels, volume, turnaround, decision generation.",
+  qs:[
+   {id:"channels", type:"multi", q:"Current submission channels", hint:"Select all that apply",
+     opts:["Fax","Phone","Portal","X12 278","FHIR PAS","Email","Other"]},
+   {id:"volume", type:"single", q:"Average annual prior authorization volume",
+     opts:[{v:"Under 50K"},{v:"50K–250K"},{v:"250K–1M"},{v:"Over 1M"}]},
+   {id:"tat_urgent", type:"number", q:"Average turnaround — Urgent requests", suffix:"hours"},
+   {id:"tat_std", type:"number", q:"Average turnaround — Standard requests", suffix:"days"},
+   {id:"decgen", type:"single", q:"How are approvals generated?", dom:"Decision Automation",
+     opts:[{v:"Manual",p:0},{v:"Semi-Automated",p:55},{v:"Fully Automated",p:100}]},
+   {id:"decletters", type:"single", q:"Decision letters are currently:", dom:"Decision Automation",
+     opts:[{v:"Manually Created",p:0},{v:"Template Driven",p:50},{v:"Automatically Generated",p:95},{v:"Generated by UM Platform",p:80}]}
+  ]},
+ {id:3, title:"CMS Compliance", sub:"Section 3 — Rate your readiness for each required CMS API.",
+  qs:[
+   {id:"cms_apis", type:"matrix", q:"Rate your organization's readiness", dom:"CMS APIs",
+     cols:[{v:"Ready",p:100},{v:"Partial",p:50},{v:"Not Started",p:0}],
+     rows:["FHIR Prior Authorization API","Prior Authorization Metrics API","Patient Access API","Provider Access API","Provider Directory API"]}
+  ]},
+ {id:4, title:"Da Vinci Implementation", sub:"Section 4 — Implementation guides, FHIR server, and version.",
+  qs:[
+   {id:"guides", type:"multi", q:"Which implementation guides are currently supported?",
+     opts:["PAS","CRD","DTR","CDex","PDex","Bulk FHIR","None"]},
+   {id:"fhir_server", type:"single", q:"FHIR Server", dom:"PAS",
+     opts:[{v:"Production",p:100},{v:"Test",p:60},{v:"Planned",p:30},{v:"None",p:0}]},
+   {id:"fhir_version", type:"single", q:"FHIR Version", dom:"PAS",
+     opts:[{v:"R4",p:100},{v:"R4B",p:100},{v:"Other",p:50}]}
+  ]},
+ {id:5, title:"Utilization Management Integration", sub:"Section 5 — How your UM platform connects to FHIR and downstream workflows.",
+  qs:[
+   {id:"um_platform", type:"text", q:"Current UM Platform", placeholder:"e.g. internal UM system / vendor name"},
+   {id:"um_fhir", type:"single", q:"Is the platform integrated with FHIR?", dom:"Decision Automation",
+     opts:[{v:"Yes",p:100},{v:"Partially",p:50},{v:"No",p:0}]},
+   {id:"um_launch", type:"single", q:"Can clinical reviewers launch directly into supporting documentation?", dom:"Provider Experience",
+     opts:[{v:"Yes",p:100},{v:"No",p:0}]},
+   {id:"um_notify", type:"single", q:"Can decisions automatically trigger notifications?", dom:"Decision Automation",
+     opts:[{v:"Yes",p:100},{v:"No",p:0}]}
+  ]},
+ {id:6, title:"Clinical Documentation Exchange", sub:"Section 6 — How supporting documentation is exchanged and how long it takes.",
+  qs:[
+   {id:"cdex_channels", type:"multi", q:"Supporting documentation is exchanged through:", hint:"Select all that apply",
+     opts:["Fax","Portal Upload","Email","CDex","X12 Attachments","Manual Upload"]},
+   {id:"cdex_time", type:"single", q:"Average time obtaining documentation", dom:"CDex",
+     opts:[{v:"Under 30 minutes",p:100},{v:"1–4 hours",p:70},{v:"Same Day",p:40},{v:"Multiple Days",p:10}]}
+  ]},
+ {id:7, title:"Provider Experience", sub:"Section 7 — How providers receive decisions and check status.",
+  qs:[
+   {id:"prov_channels", type:"multi", q:"Providers currently receive decisions through", hint:"Select all that apply",
+     opts:["Fax","Portal","API","Mail","Email","Direct Secure Messaging"]},
+   {id:"prov_status", type:"single", q:"Can providers check status electronically?", dom:"Provider Experience",
+     opts:[{v:"Yes",p:100},{v:"No",p:0}]},
+   {id:"prov_fhir", type:"single", q:"Can providers receive FHIR responses?", dom:"Provider Experience",
+     opts:[{v:"Yes",p:100},{v:"No",p:0}]}
+  ]},
+ {id:8, title:"Decision Letter Automation", sub:"Section 8 — How decision letters are generated, populated, and delivered.",
+  qs:[
+   {id:"letter_gen", type:"single", q:"How are decision letters generated?", dom:"Decision Automation",
+     opts:[{v:"Manual",p:0},{v:"UM System",p:70},{v:"Word Templates",p:40},{v:"PAS-Connect",p:100},{v:"Other",p:30}]},
+   {id:"letter_pop", type:"multi", q:"Does the system automatically populate", hint:"Select all that apply", dom:"Decision Automation", scoreBy:"count",
+     opts:["Clinical rationale","Policy references","Appeal rights","Reviewer","Patient demographics","Requested service","Authorization Number"]},
+   {id:"letter_delivery", type:"multi", q:"Delivery Channels", hint:"Select all that apply",
+     opts:["Fax","Mail","Direct Secure Messaging","FHIR","Provider Portal","Email"]}
+  ]},
+ {id:9, title:"Operational Metrics", sub:"Section 9 — Volume, effort, cost, and outcome metrics (used for savings estimates).",
+  qs:[
+   {id:"m_monthly", type:"number", q:"Average Monthly Prior Authorizations", suffix:""},
+   {id:"m_touches", type:"number", q:"Average Manual Touches (per request)", suffix:""},
+   {id:"m_ftes", type:"number", q:"FTEs Supporting PA", suffix:""},
+   {id:"m_cost", type:"number", q:"Average Cost Per Authorization", prefix:"$"},
+   {id:"m_denial", type:"number", q:"Denial Rate", suffix:"%"},
+   {id:"m_appeal", type:"number", q:"Appeal Rate", suffix:"%"}
+  ]},
+ {id:10, title:"Security & Compliance", sub:"Section 10 — Standards and controls currently supported.",
+  qs:[
+   {id:"security", type:"multi", q:"Do you currently support", hint:"Select all that apply", dom:"Security", scoreBy:"count",
+     opts:["SMART on FHIR","OAuth2","UDAP","Audit Logging","Role-Based Access Control","Encryption at Rest","Encryption in Transit"]}
+  ]},
+ {id:11, title:"AI & Automation", sub:"Section 11 — Where AI is used today.",
+  qs:[
+   {id:"ai", type:"multi", q:"Do you currently use AI for", hint:"Select all that apply",
+     opts:["Clinical Summaries","Document Classification","Decision Support","Prior Authorization Routing","Letter Generation","Clinical Data Extraction"]}
+  ]},
+ {id:12, title:"Future Priorities", sub:"Section 12 — Rank each priority. This shapes your recommended roadmap.",
+  qs:[
+   {id:"priorities", type:"matrix", q:"Rank the following",
+     cols:[{v:"High"},{v:"Medium"},{v:"Low"}],
+     rows:["CMS Compliance","Reduce Costs","Provider Satisfaction","Reduce Turnaround Time","Increase Automation","Improve Interoperability"]}
+  ]},
+ {id:13, title:"Almost done", sub:"Where should we send your Readiness Report?", contact:true,
+  qs:[
+   {id:"c_name", type:"text", q:"Full name", required:true},
+   {id:"c_org", type:"text", q:"Organization / Health plan", required:true},
+   {id:"c_role", type:"text", q:"Role / Title", required:false},
+   {id:"c_email", type:"email", q:"Work email", required:true}
+  ]}
+];
+
+/* ============================================================
+   3. STATE + RENDER
+   ============================================================ */
+const answers = {};
+let step = -1;                 // -1 = intro, 0..N = sections, then report
+const TOTAL = SECTIONS.length; // 13 (12 + contact)
+const stageEl = document.getElementById('stage');
+
+function setProgress(){
+  const pw = document.getElementById('progressWrap');
+  if(step < 0 || step >= TOTAL){ pw.classList.add('hide'); return; }
+  pw.classList.remove('hide');
+  const pct = Math.round((step/(TOTAL))*100);
+  document.getElementById('progBar').style.width = pct+'%';
+  document.getElementById('progPct').textContent = pct+'%';
+  const s = SECTIONS[step];
+  document.getElementById('progLabel').textContent = s.contact ? 'Final step' : ('Section '+(step+1)+' of 12 · '+s.title);
+}
+
+function renderIntro(){
+  stageEl.innerHTML = `
+    <div class="eyebrow">CMS Interoperability &amp; Prior Authorization Final Rule</div>
+    <h1>CMS-0057-F Readiness Assessment for Health Plans</h1>
+    <p class="lead">Evaluate how ready your organization is to comply with the CMS Interoperability and Prior Authorization Final Rule — and uncover where you can cut administrative burden, speed up decisions, and improve provider satisfaction.</p>
+    <div class="pill-list">
+      <span>Overall Readiness Score</span><span>Domain Maturity Scores</span><span>Compliance Gap Analysis</span>
+      <span>30 / 90 / 180-Day Action Plan</span><span>Estimated Operational Savings</span><span>PAS-Connect Roadmap</span>
+    </div>
+    <div class="bands">
+      ${BANDS.map(b=>`<div class="band" style="border-left:4px solid ${b.color}"><b>${b.min}${b.min===90?'–100':(b.min===0?' & under':'–'+(nextBandMax(b.min)))}</b><small>${b.name}</small></div>`).join('')}
+    </div>
+    <p class="section-sub" style="margin-top:20px">Takes about 5 minutes · 12 short sections · No patient data is requested.</p>
+    <button class="btn primary big" onclick="go(0)">Start the assessment →</button>
+  `;
+}
+function nextBandMax(min){
+  const idx = BANDS.findIndex(b=>b.min===min);
+  return BANDS[idx-1] ? BANDS[idx-1].min-1 : 100;
+}
+
+function renderSection(i){
+  const s = SECTIONS[i];
+  let html = `<div class="eyebrow">${s.contact?'Final step':'Section '+s.id}</div>
+    <h2 class="section-title">${s.title}</h2>
+    <p class="section-sub">${s.sub}</p>`;
+  s.qs.forEach(q=> html += renderQ(q));
+  html += `<div class="actions">
+      <button class="btn ghost" onclick="go(${i-1})">← Back</button>
+      <button class="btn primary" id="nextBtn" onclick="next(${i})">${s.contact?'Generate my report →':'Continue →'}</button>
+    </div>`;
+  stageEl.innerHTML = html;
+  restore(s);
+  stageEl.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderQ(q){
+  const a = answers[q.id];
+  if(q.type==='single'){
+    return qWrap(q, `<div class="opts ${q.opts.length>3?'grid':''}">${q.opts.map(o=>
+      `<label class="opt" data-q="${q.id}" data-v="${o.v}"><input type="radio" name="${q.id}" value="${o.v}"><span>${o.v}</span></label>`).join('')}</div>`);
+  }
+  if(q.type==='multi'){
+    return qWrap(q, `<div class="opts grid">${q.opts.map(o=>
+      `<label class="opt" data-q="${q.id}" data-v="${o}"><input type="checkbox" name="${q.id}" value="${o}"><span>${o}</span></label>`).join('')}</div>`);
+  }
+  if(q.type==='matrix'){
+    return qWrap(q, `<table class="matrix"><thead><tr><th></th>${q.cols.map(c=>`<th>${c.v}</th>`).join('')}</tr></thead>
+      <tbody>${q.rows.map(r=>`<tr><td>${r}</td>${q.cols.map(c=>
+        `<td class="c"><input type="radio" name="${q.id}::${r}" value="${c.v}"></td>`).join('')}</tr>`).join('')}</tbody></table>`);
+  }
+  if(q.type==='number'){
+    return qWrap(q, `<div class="num-row">${q.prefix?`<span class="suffix">${q.prefix}</span>`:''}
+      <input type="number" min="0" step="any" class="inline-num" name="${q.id}" placeholder="0">${q.suffix?`<span class="suffix">${q.suffix}</span>`:''}</div>`);
+  }
+  if(q.type==='text'||q.type==='email'){
+    return `<div class="q"><div class="field"><label>${q.q}${q.required?' *':''}</label>
+      <input type="${q.type}" name="${q.id}" placeholder="${q.placeholder||''}"></div></div>`;
+  }
+  return '';
+}
+function qWrap(q, inner){
+  return `<div class="q"><div class="qh">${q.q}</div>${q.hint?`<div class="qhint">${q.hint}</div>`:''}${inner}</div>`;
+}
+
+/* restore saved answers + wire live highlight */
+function restore(s){
+  s.qs.forEach(q=>{
+    const a = answers[q.id];
+    if(q.type==='single' && a){ const el=stageEl.querySelector(`input[name="${q.id}"][value="${cssEsc(a)}"]`); if(el){el.checked=true; el.closest('.opt').classList.add('checked');}}
+    if(q.type==='multi' && Array.isArray(a)){ a.forEach(v=>{const el=stageEl.querySelector(`input[name="${q.id}"][value="${cssEsc(v)}"]`); if(el){el.checked=true; el.closest('.opt').classList.add('checked');}});}
+    if(q.type==='matrix' && a){ Object.entries(a).forEach(([row,val])=>{const el=stageEl.querySelector(`input[name="${cssEsc(q.id+'::'+row)}"][value="${cssEsc(val)}"]`); if(el)el.checked=true;});}
+    if((q.type==='number'||q.type==='text'||q.type==='email') && a!=null){const el=stageEl.querySelector(`[name="${q.id}"]`); if(el)el.value=a;}
+  });
+  // live checked styling
+  stageEl.querySelectorAll('.opt input').forEach(inp=>{
+    inp.addEventListener('change',()=>{
+      if(inp.type==='radio') stageEl.querySelectorAll(`.opt[data-q="${inp.name}"]`).forEach(l=>l.classList.remove('checked'));
+      inp.closest('.opt').classList.toggle('checked', inp.checked);
+    });
+  });
+}
+function cssEsc(str){return String(str).replace(/"/g,'\\"');}
+
+/* collect answers from current section */
+function collect(s){
+  s.qs.forEach(q=>{
+    if(q.type==='single'){const el=stageEl.querySelector(`input[name="${q.id}"]:checked`); if(el)answers[q.id]=el.value;}
+    else if(q.type==='multi'){answers[q.id]=[...stageEl.querySelectorAll(`input[name="${q.id}"]:checked`)].map(e=>e.value);}
+    else if(q.type==='matrix'){const o={}; q.rows.forEach(r=>{const el=stageEl.querySelector(`input[name="${cssEsc(q.id+'::'+r)}"]:checked`); if(el)o[r]=el.value;}); answers[q.id]=o;}
+    else {const el=stageEl.querySelector(`[name="${q.id}"]`); if(el)answers[q.id]=el.value;}
+  });
+}
+
+/* ============================================================
+   4. NAV
+   ============================================================ */
+function go(i){
+  if(i<0){ step=-1; setProgress(); renderIntro(); window.scrollTo({top:0,behavior:'smooth'}); return;}
+  step=i; setProgress(); renderSection(i); window.scrollTo({top:0,behavior:'smooth'});
+}
+function next(i){
+  const s=SECTIONS[i]; collect(s);
+  if(s.contact){
+    const miss = s.qs.filter(q=>q.required && !(answers[q.id]&&answers[q.id].trim()));
+    if(miss.length){alert('Please complete: '+miss.map(m=>m.q).join(', ')); return;}
+    const email=answers.c_email||''; if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){alert('Please enter a valid work email.');return;}
+    submitLead();
+    renderReport();
+    return;
+  }
+  if(i+1 < TOTAL) go(i+1); else renderReport();
+}
+
+/* ============================================================
+   5. SCORING ENGINE
+   ============================================================ */
+function optP(q,val){const o=(q.opts||[]).find(x=>x.v===val); return o?(o.p??null):null;}
+
+function computeDomainScores(){
+  const buckets={}; // dom -> [scores]
+  for(const k in DOMAIN_WEIGHTS) buckets[k]=[];
+
+  SECTIONS.forEach(s=> s.qs.forEach(q=>{
+    const a=answers[q.id];
+    // single with points
+    if(q.type==='single' && q.dom && a!=null){const p=optP(q,a); if(p!=null)buckets[q.dom].push(p);}
+    // multi scored by count → % of options checked
+    if(q.type==='multi' && q.dom && q.scoreBy==='count' && Array.isArray(a)){
+      buckets[q.dom].push(Math.round((a.length/q.opts.length)*100));
+    }
+    // matrix with points (CMS APIs)
+    if(q.type==='matrix' && q.dom && a){
+      q.rows.forEach(r=>{const v=a[r]; if(v!=null){const c=q.cols.find(x=>x.v===v); if(c&&c.p!=null)buckets[q.dom].push(c.p);}});
+    }
+  }));
+
+  const scores={};
+  for(const dom in buckets){
+    const arr=buckets[dom];
+    scores[dom]= arr.length? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : 0;
+  }
+  return scores;
+}
+function computeOverall(domScores){
+  let sum=0,w=0;
+  for(const dom in DOMAIN_WEIGHTS){ sum+=domScores[dom]*DOMAIN_WEIGHTS[dom]; w+=DOMAIN_WEIGHTS[dom]; }
+  return Math.round(sum/w);
+}
+function bandFor(score){return BANDS.find(b=>score>=b.min);}
+
+/* gap analysis — mirrors the sample report flags */
+function computeGaps(){
+  const g=[];
+  const has=(id,val)=>Array.isArray(answers[id])&&answers[id].includes(val);
+  if(answers.decletters==='Manually Created' || answers.letter_gen==='Manual') g.push("Manual decision letters");
+  if(has('channels','Fax')||has('cdex_channels','Fax')||has('prov_channels','Fax')||has('letter_delivery','Fax')) g.push("Fax-heavy workflow");
+  if(!has('guides','CDex')) g.push("No CDex implementation");
+  if(answers.um_notify==='No') g.push("No automated provider notifications");
+  if(!has('guides','PAS')||answers.fhir_server==='None'||answers.fhir_server==='Planned') g.push("Limited PAS adoption");
+  if(answers.um_fhir==='No') g.push("UM platform not integrated with FHIR");
+  if(answers.prov_fhir==='No') g.push("Providers cannot receive FHIR responses");
+  return g;
+}
+/* tailored PAS-Connect recommendations */
+function computeRecs(){
+  const r=[];
+  const has=(id,val)=>Array.isArray(answers[id])&&answers[id].includes(val);
+  if(answers.decletters==='Manually Created'||answers.letter_gen==='Manual'||answers.letter_gen==='Word Templates')
+    r.push({h:"If manual decision letters are identified",p:"Deploy PAS-Connect Decision Letter Automation with configurable templates, clinical rationale, appeal language, and multi-channel delivery."});
+  if(answers.um_notify==='No'||answers.prov_status==='No')
+    r.push({h:"If provider notifications are inconsistent",p:"Enable automated notification workflows through FHIR APIs, Direct Secure Messaging, fax, provider portals, and mail."});
+  if(!has('guides','CDex'))
+    r.push({h:"If CDex adoption is limited",p:"Implement PAS-Connect CDex to automate supporting documentation exchange and reduce manual document requests."});
+  if(answers.um_fhir==='No'||answers.um_fhir==='Partially')
+    r.push({h:"If UM systems are disconnected from FHIR",p:"Use PAS-Connect as the orchestration layer between utilization management platforms, Da Vinci PAS, and downstream communication workflows."});
+  if(!r.length) r.push({h:"Optimization opportunity",p:"Your core capabilities are strong — PAS-Connect can help you monitor CMS-0057-F metrics, expand automation, and maintain compliance as requirements evolve."});
+  return r;
+}
+/* 30/90/180 plan, filtered by gaps */
+function computePlan(gaps){
+  const immediate=[], mid=[], long=[];
+  if(gaps.includes("Limited PAS adoption")) immediate.push("Complete PAS implementation");
+  if(gaps.includes("No automated provider notifications")) immediate.push("Automate decision notifications");
+  if(gaps.includes("UM platform not integrated with FHIR")) immediate.push("Integrate UM platform with FHIR APIs");
+  if(gaps.includes("Manual decision letters")) immediate.push("Replace manual letter generation");
+  if(!immediate.length) immediate.push("Validate CMS API conformance","Tighten metrics reporting");
+  if(gaps.includes("No CDex implementation")) mid.push("Deploy CDex");
+  mid.push("Expand provider API adoption","Introduce automated clinical document retrieval","Implement analytics dashboards");
+  long.push("AI-assisted clinical review","Predictive authorization routing","Intelligent provider notifications","End-to-end workflow orchestration");
+  return {immediate,mid,long};
+}
+
+/* ============================================================
+   6. REPORT
+   ============================================================ */
+function renderReport(){
+  step = TOTAL; setProgress();
+  document.getElementById('progressWrap').classList.add('hide');
+  const dom = computeDomainScores();
+  const overall = computeOverall(dom);
+  const band = bandFor(overall);
+  const gaps = computeGaps();
+  const recs = computeRecs();
+  const plan = computePlan(gaps);
+
+  const circ = 2*Math.PI*66;
+  const off = circ*(1-overall/100);
+  const domOrder = Object.keys(DOMAIN_WEIGHTS);
+
+  stageEl.classList.add('report');
+  stageEl.innerHTML = `
+    <div class="eyebrow no-print">Automated Readiness Report</div>
+    <h1 style="margin-bottom:4px">${answers.c_org||'Your Organization'}</h1>
+    <p class="section-sub">CMS-0057-F Readiness Assessment · Prepared for ${answers.c_name||''}</p>
+
+    <div class="score-hero">
+      <div class="gauge">
+        <svg width="150" height="150">
+          <circle cx="75" cy="75" r="66" stroke="rgba(255,255,255,.14)" stroke-width="13" fill="none"/>
+          <circle cx="75" cy="75" r="66" stroke="${band.color}" stroke-width="13" fill="none"
+            stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${off}"/>
+        </svg>
+        <div class="val"><div><b>${overall}</b><small>/ 100</small></div></div>
+      </div>
+      <div class="meta">
+        <div class="band-name" style="color:${band.color}">${band.name}</div>
+        <p>${band.blurb}</p>
+      </div>
+    </div>
+
+    <h2><span class="n">1</span> Domain Maturity Scores</h2>
+    <div class="domains">
+      ${domOrder.map(d=>{const v=dom[d];const c=bandFor(v).color;return `
+        <div class="dom"><div class="dn">${d}</div>
+          <div class="dbar"><i style="width:${v}%;background:${c}"></i></div>
+          <div class="dv" style="color:${c}">${v}</div></div>`;}).join('')}
+    </div>
+
+    <h2><span class="n">2</span> Compliance Gap Analysis</h2>
+    <ul class="list-flag">
+      ${gaps.length? gaps.map(g=>`<li><span class="x">✕</span> ${g}</li>`).join('')
+        : `<li><span class="ok">✓</span> No critical gaps detected across the assessed domains.</li>`}
+    </ul>
+
+    <h2><span class="n">3</span> Recommended Action Plan</h2>
+    <div class="plan">
+      <div class="col"><div class="when">Immediate · 0–90 days</div><h4>Close compliance gaps</h4><ul>${plan.immediate.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+      <div class="col"><div class="when">Mid-Term · 90–180 days</div><h4>Expand capabilities</h4><ul>${plan.mid.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+      <div class="col"><div class="when">Long-Term</div><h4>Optimize &amp; automate</h4><ul>${plan.long.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+    </div>
+
+    <h2><span class="n">4</span> Estimated Business Impact</h2>
+    <table class="impact">
+      <tr><td>Administrative cost reduction</td><td>20–40%</td></tr>
+      <tr><td>Faster authorization turnaround</td><td>30–60%</td></tr>
+      <tr><td>Reduced manual letter generation</td><td>Up to 90%</td></tr>
+      <tr><td>Fewer fax-based transactions</td><td>70–95%</td></tr>
+      <tr><td>Increased provider digital adoption</td><td>25–50%</td></tr>
+      <tr><td>Improved CMS compliance readiness</td><td>High</td></tr>
+    </table>
+    ${estSavings()}
+
+    <h2><span class="n">5</span> PAS-Connect&trade; Recommendations</h2>
+    ${recs.map(r=>`<div class="rec"><h4>${r.h}</h4><p>${r.p}</p></div>`).join('')}
+
+    <div class="cap-note no-print">✓ Report generated. A copy has been sent to ${answers.c_email||'your email'}. Our team will follow up to walk you through a PAS-Connect demonstration.</div>
+
+    <div class="actions no-print">
+      <button class="btn ghost" onclick="go(0)">↺ Retake</button>
+      <button class="btn primary" onclick="window.print()">⬇ Download / Print PDF</button>
+    </div>
+    <p class="muted-note">Estimates should be refined using your organization's operational metrics and implementation scope. This assessment collects organizational and operational information only — no patient data is requested or stored. Powered by PAS-Connect™ · Novatross Technology.</p>
+  `;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* optional cost saving line from operational metrics */
+function estSavings(){
+  const monthly=parseFloat(answers.m_monthly), cost=parseFloat(answers.m_cost);
+  if(!monthly||!cost||isNaN(monthly)||isNaN(cost)) return '';
+  const annual=monthly*12*cost;
+  const low=Math.round(annual*0.20), high=Math.round(annual*0.40);
+  const fmt=n=>'$'+n.toLocaleString('en-US');
+  return `<p class="section-sub" style="margin-top:12px">Based on the volume and cost you entered (${monthly.toLocaleString()} PAs/month at ${fmt(Math.round(cost))} each), a 20–40% administrative reduction represents an estimated <b style="color:#059669">${fmt(low)} – ${fmt(high)} per year</b> in savings.</p>`;
+}
+
+/* ============================================================
+   7. LEAD CAPTURE (prototype: local only; wired to HubSpot on deploy)
+   No PHI — business contact + assessment score metadata only.
+   ============================================================ */
+function submitLead(){
+  const dom=computeDomainScores(), overall=computeOverall(dom);
+  const payload={
+    name:answers.c_name, org:answers.c_org, role:answers.c_role, email:answers.c_email,
+    overall_score:overall, domain_scores:dom, band:bandFor(overall).name,
+    source:"CMS-0057-F Readiness Assessment"
+  };
+  console.log("[lead payload → HubSpot on deploy]", payload);
+  // On the FhirPlug deploy this POSTs to /assessment/submit which creates/updates
+  // a HubSpot contact with product-interest + score properties (no patient data).
+}
+
+/* boot */
+renderIntro();
+</script>
+</body>
+</html>
