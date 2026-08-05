@@ -302,13 +302,13 @@ const SECTIONS = [
   ]},
  {id:10, title:"Security & Compliance", sub:"Section 10 — Standards and controls currently supported.",
   qs:[
-   {id:"security", type:"multi", q:"Do you currently support", hint:"Select all that apply", dom:"Security", scoreBy:"count",
-     opts:["SMART on FHIR","OAuth2","UDAP","Audit Logging","Role-Based Access Control","Encryption at Rest","Encryption in Transit"]}
+   {id:"security", type:"multi", q:"Do you currently support", hint:"Select all that apply", dom:"Security", scoreBy:"count", other:true,
+     opts:["SMART on FHIR","OAuth2","UDAP","Audit Logging","Role-Based Access Control","Encryption at Rest","Encryption in Transit","Other"]}
   ]},
  {id:11, title:"AI & Automation", sub:"Section 11 — Where AI is used today.",
   qs:[
-   {id:"ai", type:"multi", q:"Do you currently use AI for", hint:"Select all that apply",
-     opts:["Clinical Summaries","Document Classification","Decision Support","Prior Authorization Routing","Letter Generation","Clinical Data Extraction"]}
+   {id:"ai", type:"multi", q:"Do you currently use AI for", hint:"Select all that apply", other:true,
+     opts:["Clinical Summaries","Document Classification","Decision Support","Prior Authorization Routing","Letter Generation","Clinical Data Extraction","Other"]}
   ]},
  {id:12, title:"Future Priorities", sub:"Section 12 — Rank each priority. This shapes your recommended roadmap.",
   qs:[
@@ -471,9 +471,11 @@ function computeDomainScores(){
     const a=answers[q.id];
     // single with points
     if(q.type==='single' && q.dom && a!=null){const p=optP(q,a); if(p!=null)buckets[q.dom].push(p);}
-    // multi scored by count → % of options checked
+    // multi scored by count → % of options checked ("Other" is excluded so it never dilutes)
     if(q.type==='multi' && q.dom && q.scoreBy==='count' && Array.isArray(a)){
-      buckets[q.dom].push(Math.round((a.length/q.opts.length)*100));
+      const scoreOpts = q.opts.filter(o=>o!=='Other');
+      const hits = a.filter(v=>v!=='Other').length;
+      buckets[q.dom].push(Math.round((hits/scoreOpts.length)*100));
     }
     // matrix with points (CMS APIs)
     if(q.type==='matrix' && q.dom && a){
