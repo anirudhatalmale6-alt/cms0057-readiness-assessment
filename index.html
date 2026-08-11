@@ -616,7 +616,7 @@ function renderReport(){
     <h2><span class="n">5</span> PAS-Connect&trade; Recommendations</h2>
     ${recs.map(r=>`<div class="rec"><h4>${r.h}</h4><p>${r.p}</p></div>`).join('')}
 
-    <div class="cap-note no-print">✓ Report generated. A copy has been sent to ${answers.c_email||'your email'}. Our team will follow up to walk you through a PAS-Connect demonstration.</div>
+    <div class="cap-note no-print" id="leadNote">✓ Report generated. Our team will follow up to walk you through a PAS-Connect demonstration.</div>
 
     <div class="actions no-print">
       <button class="btn ghost" onclick="go(0)">↺ Retake</button>
@@ -648,9 +648,27 @@ function submitLead(){
     overall_score:overall, domain_scores:dom, band:bandFor(overall).name,
     source:"CMS-0057-F Readiness Assessment"
   };
-  console.log("[lead payload → HubSpot on deploy]", payload);
-  // On the FhirPlug deploy this POSTs to /assessment/submit which creates/updates
-  // a HubSpot contact with product-interest + score properties (no patient data).
+  // POSTs to /assessment/submit, which stores the lead, creates/updates the HubSpot
+  // contact with product-interest + score properties, notifies the team, and emails
+  // the respondent their own summary. Organisational answers only - no patient data.
+  fetch("/assessment/submit", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload)
+  })
+  .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+  .then(function(res){ markLeadSent(res && res.emailed_respondent); })
+  .catch(function(err){ console.warn("[assessment] submit failed", err); markLeadSent(false); });
+}
+
+/* The report renders immediately; this corrects the confirmation line once we know
+   whether the respondent's copy actually went out. */
+function markLeadSent(emailed){
+  var el=document.getElementById("leadNote");
+  if(!el) return;
+  el.textContent = emailed
+    ? "✓ Report generated. A copy has been sent to " + (answers.c_email||"your email") + ". Our team will follow up to walk you through a PAS-Connect demonstration."
+    : "✓ Report generated. Our team will follow up to walk you through a PAS-Connect demonstration.";
 }
 
 /* keep the sticky progress bar flush under the topbar at any width
