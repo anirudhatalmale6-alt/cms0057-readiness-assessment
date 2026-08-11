@@ -152,7 +152,12 @@ table.impact td:last-child{text-align:right;font-weight:700;color:var(--green)}
 .cap-note{background:var(--green-bg);border:1px solid #a7f3d0;border-radius:11px;padding:14px 16px;font-size:13.5px;color:#065f46;margin-top:16px}
 /* honeypot: off-screen rather than display:none, which more bots skip */
 .hp-field{position:absolute!important;left:-9999px!important;top:auto;width:1px;height:1px;overflow:hidden}
-.ts-slot{margin:18px 0 4px}
+/* The widget has a fixed ~300px width, wider than the card on small phones. The
+   wrapper keeps the layout box inside the card so the page never scrolls sideways;
+   fitTurnstile() scales the widget to fit exactly (a transform alone cannot, since
+   it does not change layout width). */
+.ts-wrap{margin:18px 0 4px;max-width:100%;overflow:hidden}
+.ts-slot{transform-origin:left top}
 .muted-note{color:var(--muted);font-size:12.5px;margin-top:26px;border-top:1px solid var(--line);padding-top:16px}
 
 footer{background:var(--navy);color:#8ea3c7;text-align:center;padding:22px;font-size:12.5px}
@@ -395,7 +400,27 @@ function mountAssessTurnstile(attempt){
       theme: 'light'
     });
   }catch(e){ /* already rendered into this slot */ }
+  fitTurnstile();
+  setTimeout(fitTurnstile, 1200);
+  setTimeout(fitTurnstile, 3000);
 }
+
+/* Scale the fixed-width widget down to whatever room the card has, so it is never
+   clipped and never widens the page on a small phone. */
+function fitTurnstile(){
+  var NATURAL_W = 300, NATURAL_H = 65;
+  var wraps = document.querySelectorAll('.ts-wrap');
+  for(var i=0;i<wraps.length;i++){
+    var wrap = wraps[i], el = wrap.querySelector('.ts-slot');
+    if(!el) continue;
+    var avail = wrap.clientWidth;
+    if(!avail) continue;
+    var s = Math.min(1, avail / NATURAL_W);
+    el.style.transform = s < 1 ? 'scale(' + s.toFixed(4) + ')' : '';
+    wrap.style.height  = s < 1 ? Math.ceil(NATURAL_H * s) + 'px' : '';
+  }
+}
+window.addEventListener('resize', fitTurnstile);
 
 function renderSection(i){
   const s = SECTIONS[i];
@@ -409,7 +434,7 @@ function renderSection(i){
         <label for="a_website">Website</label>
         <input id="a_website" name="website" type="text" tabindex="-1" autocomplete="off">
       </div>
-      <div class="ts-slot" id="assessTurnstile"></div>`;
+      <div class="ts-wrap"><div class="ts-slot" id="assessTurnstile"></div></div>`;
   }
   html += `<div class="actions">
       <button class="btn ghost" onclick="go(${i-1})">← Back</button>
